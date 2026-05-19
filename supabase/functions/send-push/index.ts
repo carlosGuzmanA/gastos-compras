@@ -4,7 +4,10 @@ import webpush from "npm:web-push@3.6.1";
 
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") || "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || "";
-const VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:negocio@compras-familia.com";
+let VAPID_EMAIL = Deno.env.get("VAPID_EMAIL") || "mailto:negocio@compras-familia.com";
+if (VAPID_EMAIL && !VAPID_EMAIL.startsWith("mailto:") && !VAPID_EMAIL.startsWith("http:") && !VAPID_EMAIL.startsWith("https:")) {
+  VAPID_EMAIL = `mailto:${VAPID_EMAIL}`;
+}
 
 // Configurar detalles VAPID para Web Push
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
