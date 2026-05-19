@@ -67,6 +67,21 @@ serve(async (req) => {
       });
     }
 
+    // Filtrar las suscripciones para no notificar al usuario que registró el gasto
+    const targetSubscriptions = subscriptions.filter((sub: any) => {
+      // Si la suscripción no tiene usuario asociado en el JSON, la enviamos para compatibilidad
+      if (!sub.subscription || !sub.subscription.usuario) return true;
+      // Excluir si coincide con el usuario creador del gasto
+      return sub.subscription.usuario !== creado_por;
+    });
+
+    if (targetSubscriptions.length === 0) {
+      return new Response(JSON.stringify({ message: "No recipient subscriptions found (creator excluded)" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200
+      });
+    }
+
     // Configurar el payload de la notificación push
     const notificationPayload = JSON.stringify({
       title: "💸 Nuevo Gasto Registrado",
@@ -74,7 +89,7 @@ serve(async (req) => {
     });
 
     // Enviar las notificaciones de manera asíncrona
-    const pushPromises = subscriptions.map((sub: any) => {
+    const pushPromises = targetSubscriptions.map((sub: any) => {
       return webpush.sendNotification(sub.subscription, notificationPayload)
         .then(() => {
           console.log(`Notificación enviada con éxito a suscripción: ${sub.id}`);
@@ -99,7 +114,7 @@ serve(async (req) => {
 
     await Promise.all(pushPromises);
 
-    return new Response(JSON.stringify({ success: true, notifications_sent: subscriptions.length }), {
+    return new Response(JSON.stringify({ success: true, notifications_sent: targetSubscriptions.length }), {
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       status: 200
     });

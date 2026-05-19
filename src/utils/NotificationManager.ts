@@ -34,7 +34,7 @@ export const NotificationManager = {
   },
 
   // Solicitar permiso e inmediatamente suscribir al usuario
-  async requestPermissionAndSubscribe(): Promise<PushSubscription | null> {
+  async requestPermissionAndSubscribe(username: string): Promise<PushSubscription | null> {
     if (!this.isSupported()) {
       console.warn('Las notificaciones push no están soportadas en este navegador.');
       return null;
@@ -78,7 +78,7 @@ export const NotificationManager = {
       });
 
       // 5. Enviar la suscripción a Supabase para almacenarla
-      await this.saveSubscriptionToDatabase(subscription);
+      await this.saveSubscriptionToDatabase(subscription, username);
 
       return subscription;
     } catch (error) {
@@ -88,11 +88,17 @@ export const NotificationManager = {
   },
 
   // Guardar la suscripción en Supabase
-  async saveSubscriptionToDatabase(subscription: PushSubscription): Promise<void> {
+  async saveSubscriptionToDatabase(subscription: PushSubscription, username: string): Promise<void> {
     if (!isSupabaseConfigured) return;
 
     try {
       const subscriptionJSON = subscription.toJSON();
+      
+      // Enriquecer el objeto de suscripción con el usuario actual
+      const enrichedSubscription = {
+        ...subscriptionJSON,
+        usuario: username
+      };
       
       // Para evitar duplicados en la base de datos, buscaremos si el endpoint ya existe
       const { data: existing } = await supabase
@@ -102,14 +108,20 @@ export const NotificationManager = {
         .maybeSingle();
 
       if (existing) {
-        console.log('El dispositivo ya estaba suscrito en la base de datos.');
+        // Si ya existe, actualizamos el usuario asociado
+        const { error: updateError } = await supabase
+          .from('push_subscriptions')
+          .update({ subscription: enrichedSubscription })
+          .eq('id', existing.id);
+        if (updateError) throw updateError;
+        console.log('Suscripción del dispositivo actualizada con el usuario:', username);
         return;
       }
 
       // Si no existe, lo insertamos
       const { error } = await supabase
         .from('push_subscriptions')
-        .insert([{ subscription: subscriptionJSON }]);
+        .insert([{ subscription: enrichedSubscription }]);
 
       if (error) throw error;
       console.log('Dispositivo suscrito y guardado con éxito en Supabase.');

@@ -169,7 +169,7 @@ function App() {
 
   const handleSubscribePush = async () => {
     try {
-      const sub = await NotificationManager.requestPermissionAndSubscribe();
+      const sub = await NotificationManager.requestPermissionAndSubscribe(currentUser || '');
       if (sub) {
         setPushSubscribed(true);
         setShowNotificationBanner(false);
