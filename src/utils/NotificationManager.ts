@@ -60,17 +60,22 @@ export const NotificationManager = {
       // 2. Obtener el registro del Service Worker activo
       const registration = await navigator.serviceWorker.ready;
 
-      // 3. Verificar si ya existe una suscripción activa
+      // 3. Obtener suscripción existente y desuscribirla si existe para forzar la nueva llave VAPID
       let subscription = await registration.pushManager.getSubscription();
-
-      if (!subscription) {
-        // 4. Si no existe, crear una nueva suscripción
-        const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedKey as any
-        });
+      if (subscription) {
+        try {
+          await subscription.unsubscribe();
+        } catch (e) {
+          console.warn('Error al desuscribir suscripción previa:', e);
+        }
       }
+
+      // 4. Crear una nueva suscripción con la llave VAPID actual
+      const convertedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey as any
+      });
 
       // 5. Enviar la suscripción a Supabase para almacenarla
       await this.saveSubscriptionToDatabase(subscription);
