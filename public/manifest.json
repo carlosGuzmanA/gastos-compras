@@ -1,0 +1,25 @@
+{
+  "short_name": "GastosNegocio",
+  "name": "Control de Gastos y Fiados",
+  "description": "Lleva el control de gastos y cuentas pendientes de tu negocio de forma rápida, eficiente y en tiempo real.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#0f0f1a",
+  "theme_color": "#6366f1",
+  "display": "standalone",
+  "orientation": "portrait",
+  "display_override": ["standalone", "fullscreen", "window-controls-overlay"]
+}
