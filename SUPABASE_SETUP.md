@@ -27,13 +27,13 @@ Una vez que tu proyecto esté listo:
 ```sql
 -- 1. Habilitar extensiones necesarias
 create extension if not exists "uuid-ossp";
-
 -- 2. Crear la tabla de Gastos
 create table public.gastos (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   concepto text not null,
   monto numeric(12,2) not null,
+  categoria text not null default 'Otros',
   fecha date not null default current_date,
   tipo text not null check (tipo in ('contado', 'fiado')),
   proveedor text,
