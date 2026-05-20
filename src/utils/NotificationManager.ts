@@ -127,6 +127,7 @@ export const NotificationManager = {
       console.log('Dispositivo suscrito y guardado con éxito en Supabase.');
     } catch (error) {
       console.error('Error al guardar la suscripción en la base de datos:', error);
+      throw error;
     }
   },
 

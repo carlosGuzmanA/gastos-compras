@@ -147,7 +147,7 @@ function App() {
     };
   }, [fetchExpenses, isOnline]);
 
-  // Verificar estado de notificaciones push para mostrar banner
+  // Verificar estado de notificaciones push para mostrar banner o inicializar estado
   useEffect(() => {
     if (NotificationManager.isSupported() && isSupabaseConfigured) {
       const state = NotificationManager.getPermissionState();
@@ -158,8 +158,8 @@ function App() {
           if (sub) {
             setPushSubscribed(true);
             setShowNotificationBanner(false);
-          } else if (state === 'default') {
-            // Mostrar banner si el permiso es por defecto (aún no ha tomado decisión)
+          } else if (state === 'default' || state === 'granted') {
+            // Mostrar banner si el permiso es por defecto o si ya fue concedido pero no hay suscripción activa
             setShowNotificationBanner(true);
           }
         });
@@ -178,6 +178,21 @@ function App() {
     } catch (err) {
       console.error(err);
       alert('No se pudo activar las notificaciones. Verifica los permisos del navegador.');
+    }
+  };
+
+  const handleUnsubscribePush = async () => {
+    try {
+      const success = await NotificationManager.unsubscribe();
+      if (success) {
+        setPushSubscribed(false);
+        alert('Notificaciones desactivadas en este dispositivo.');
+      } else {
+        alert('No se pudo desactivar las notificaciones o ya estaban inactivas.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al intentar desactivar las notificaciones.');
     }
   };
 
@@ -228,11 +243,34 @@ function App() {
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? 'var(--success)' : 'var(--danger)' }}></div>
               <span>{isOnline ? 'Conectado a Internet' : 'Modo Offline (Local)'}</span>
             </div>
-
             {!isOnline && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--warning)' }}>
                 <WifiOff size={12} />
                 <span>Los cambios se guardan localmente</span>
+              </div>
+            )}
+
+            {NotificationManager.isSupported() && isSupabaseConfigured && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
+                <button
+                  onClick={pushSubscribed ? handleUnsubscribePush : handleSubscribePush}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: pushSubscribed ? 'var(--success)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                    textAlign: 'left'
+                  }}
+                >
+                  <Bell size={12} fill={pushSubscribed ? 'var(--success)' : 'none'} style={{ color: pushSubscribed ? 'var(--success)' : 'var(--text-secondary)' }} />
+                  <span>{pushSubscribed ? 'Notificaciones Activas' : 'Activar Notificaciones'}</span>
+                </button>
               </div>
             )}
           </div>
