@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { LayoutDashboard, PlusCircle, History, User, LogOut, WifiOff, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, History, LogOut, Wifi, WifiOff, Bell, Settings } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './utils/supabaseClient';
 import { NotificationManager } from './utils/NotificationManager';
 import { UserSelection } from './components/UserSelection';
@@ -149,7 +149,7 @@ function App() {
             if (g && g.creado_por && g.creado_por !== currentUser) {
               setToast({
                 title: '💸 Nuevo Gasto Registrado',
-                body: `${g.creado_por} anotó: $${g.monto} en "${g.concepto}" (${g.tipo === 'contado' ? 'Al Contado' : 'Fiado'})`,
+                body: `${g.creado_por} anotó: $${Math.round(g.monto).toLocaleString('es-CL')} en "${g.concepto}" (${g.tipo === 'contado' ? 'Al Contado' : 'Fiado'})`,
               });
               try {
                 // Beep corto generado con WebAudio (no necesita asset)
@@ -260,73 +260,48 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Sidebar para desktop, Header para móvil */}
-      <aside className="glass-panel" style={{ display: 'flex', flexDirection: 'column', height: 'fit-content' }}>
-        <div className="app-header" style={{ marginBottom: '16px', borderBottom: 'none', paddingBottom: 0 }}>
-          <h1 className="app-title">
-            <span style={{ fontSize: '2rem' }}>💰</span> Control
-          </h1>
+      {/* Topbar compacto: título + estado por iconos + usuario + logout */}
+      <aside className="app-topbar glass-panel">
+        <div className="topbar-brand">
+          <span className="topbar-emoji">💰</span>
+          <h1 className="topbar-title">Control</h1>
         </div>
 
-        {/* Info de Usuario y Estado */}
-        <div style={{ background: 'rgba(0,0,0,0.15)', padding: '12px', borderRadius: 'var(--radius-sm)', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div className="avatar-icon-circle" style={{ width: '28px', height: '28px', background: 'var(--primary-glow)', color: 'var(--primary)' }}>
-                <User size={14} />
-              </div>
-              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{currentUser}</span>
-              {pushSubscribed && (
-                <span title="Notificaciones push activas" style={{ display: 'inline-flex', alignSelf: 'center', marginLeft: '4px', color: 'var(--success)' }}>
-                  <Bell size={12} fill="var(--success)" />
-                </span>
-              )}
-            </div>
-            <button 
-              onClick={handleLogout} 
-              style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-              title="Cerrar perfil"
+        <div className="topbar-actions">
+          <div
+            className={`topbar-icon-btn status-dot ${isOnline ? 'is-online' : 'is-offline'}`}
+            title={isOnline ? 'Conectado a Internet' : 'Sin conexión — guardando local'}
+            aria-label={isOnline ? 'Conectado' : 'Sin conexión'}
+          >
+            {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+          </div>
+
+          {NotificationManager.isSupported() && isSupabaseConfigured && (
+            <button
+              type="button"
+              className={`topbar-icon-btn ${pushSubscribed ? 'is-active' : ''}`}
+              onClick={pushSubscribed ? handleUnsubscribePush : handleSubscribePush}
+              title={pushSubscribed ? 'Notificaciones activas (toca para desactivar)' : 'Activar notificaciones'}
+              aria-label={pushSubscribed ? 'Desactivar notificaciones' : 'Activar notificaciones'}
             >
-              <LogOut size={16} />
+              <Bell size={16} fill={pushSubscribed ? 'currentColor' : 'none'} />
             </button>
+          )}
+
+          <div className="topbar-user" title={currentUser}>
+            <div className="topbar-avatar">{currentUser.charAt(0).toUpperCase()}</div>
+            <span className="topbar-username">{currentUser}</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? 'var(--success)' : 'var(--danger)' }}></div>
-              <span>{isOnline ? 'Conectado a Internet' : 'Modo Offline (Local)'}</span>
-            </div>
-            {!isOnline && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--warning)' }}>
-                <WifiOff size={12} />
-                <span>Los cambios se guardan localmente</span>
-              </div>
-            )}
-
-            {NotificationManager.isSupported() && isSupabaseConfigured && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
-                <button
-                  onClick={pushSubscribed ? handleUnsubscribePush : handleSubscribePush}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: pushSubscribed ? 'var(--success)' : 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontSize: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    width: '100%',
-                    textAlign: 'left'
-                  }}
-                >
-                  <Bell size={12} fill={pushSubscribed ? 'var(--success)' : 'none'} style={{ color: pushSubscribed ? 'var(--success)' : 'var(--text-secondary)' }} />
-                  <span>{pushSubscribed ? 'Notificaciones Activas' : 'Activar Notificaciones'}</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            className="topbar-icon-btn is-danger"
+            onClick={handleLogout}
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
 
         {/* Navegación Desktop */}
@@ -467,69 +442,34 @@ function App() {
         )}
       </main>
 
-      {/* Navegación Móvil (Solo visible mediante CSS media-queries en index.css) */}
-      <div className="nav-bar-mobile-only" style={{ display: 'none' }}>
-        {/* Esto se controla por CSS en index.css, pero para seguridad inyectamos el HTML correspondiente aquí */}
-        <style>{`
-          @media (max-width: 1023px) {
-            .nav-bar-mobile-only {
-              display: flex !important;
-              position: fixed;
-              bottom: 0;
-              left: 0;
-              right: 0;
-              height: 72px;
-              background: rgba(12, 12, 24, 0.9);
-              backdrop-filter: blur(20px);
-              -webkit-backdrop-filter: blur(20px);
-              border-top: 1px solid var(--border-light);
-              justify-content: space-around;
-              align-items: center;
-              padding: 0 12px;
-              z-index: 100;
-            }
-            .mobile-nav-item {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 4px;
-              background: none;
-              border: none;
-              color: var(--text-secondary);
-              font-family: var(--font-body);
-              font-size: 0.75rem;
-              cursor: pointer;
-              padding: 8px 16px;
-              border-radius: 12px;
-            }
-            .mobile-nav-item.active {
-              color: var(--primary);
-              background: rgba(99, 102, 241, 0.08);
-            }
-          }
-        `}</style>
-        <button 
+      {/* Navegación inferior móvil con FAB central */}
+      <nav className="mobile-bottom-nav">
+        <button
           className={`mobile-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
+          aria-label="Dashboard"
         >
-          <LayoutDashboard size={20} />
+          <LayoutDashboard size={22} />
           <span>Dashboard</span>
         </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'form' ? 'active' : ''}`}
+
+        <button
+          className={`mobile-nav-fab ${activeTab === 'form' ? 'active' : ''}`}
           onClick={() => setActiveTab('form')}
+          aria-label="Nuevo Gasto"
         >
-          <PlusCircle size={20} />
-          <span>Nuevo Gasto</span>
+          <PlusCircle size={28} />
         </button>
-        <button 
+
+        <button
           className={`mobile-nav-item ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
+          aria-label="Historial"
         >
-          <History size={20} />
+          <History size={22} />
           <span>Historial</span>
         </button>
-      </div>
+      </nav>
     </div>
   );
 }

@@ -216,7 +216,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading, o
 
                   <div className="expense-amount-area">
                     <span className={`expense-amount ${expense.tipo === 'contado' ? 'contado' : expense.pagado ? 'pagado' : 'fiado'}`}>
-                      ${expense.monto.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ${expense.monto.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
                     </span>
 
                     {isFiadoUnpaid && (

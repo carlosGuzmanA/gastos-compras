@@ -85,7 +85,7 @@ serve(async (req) => {
     // Configurar el payload de la notificación push
     const notificationPayload = JSON.stringify({
       title: "💸 Nuevo Gasto Registrado",
-      body: `${creado_por} anotó: $${monto} en "${concepto}" (${tipo === 'contado' ? 'Al Contado' : 'Fiado'})`
+      body: `${creado_por} anotó: $${Math.round(Number(monto)).toLocaleString('es-CL')} en "${concepto}" (${tipo === 'contado' ? 'Al Contado' : 'Fiado'})`
     });
 
     // Enviar las notificaciones de manera asíncrona

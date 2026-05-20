@@ -170,7 +170,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
             </div>
           </div>
           <span className="stat-value">
-            ${stats.totalMes.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${stats.totalMes.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
           </span>
           <span className="stat-desc">Acumulado del mes actual</span>
         </div>
@@ -183,7 +183,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
             </div>
           </div>
           <span className="stat-value" style={{ color: 'var(--warning)' }}>
-            ${stats.totalFiadoPendiente.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${stats.totalFiadoPendiente.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
           </span>
           <span className="stat-desc">Compras fiadas pendientes de pago</span>
         </div>
@@ -196,7 +196,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
             </div>
           </div>
           <span className="stat-value" style={{ color: 'var(--success)' }}>
-            ${stats.totalPagado.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${stats.totalPagado.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
           </span>
           <span className="stat-desc">Gastos pagados en efectivo / liquidados</span>
         </div>
@@ -326,7 +326,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
                   Total Hist.
                 </div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
-                  ${Math.round(donutChartData.total).toLocaleString()}
+                  ${Math.round(donutChartData.total).toLocaleString('es-CL')}
                 </div>
               </div>
             </div>
@@ -340,7 +340,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
                   Contado ({Math.round(donutChartData.pctContado)}%):
                 </span>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                  ${Math.round(donutChartData.contado).toLocaleString()}
+                  ${Math.round(donutChartData.contado).toLocaleString('es-CL')}
                 </span>
               </div>
               
@@ -351,7 +351,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
                   Fiado Pend. ({Math.round(donutChartData.pctFiadoPendiente)}%):
                 </span>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--warning)' }}>
-                  ${Math.round(donutChartData.fiadoPendiente).toLocaleString()}
+                  ${Math.round(donutChartData.fiadoPendiente).toLocaleString('es-CL')}
                 </span>
               </div>
 
@@ -362,7 +362,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses }) => {
                   Fiado Pag. ({Math.round(donutChartData.pctFiadoPagado)}%):
                 </span>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#818cf8' }}>
-                  ${Math.round(donutChartData.fiadoPagado).toLocaleString()}
+                  ${Math.round(donutChartData.fiadoPagado).toLocaleString('es-CL')}
                 </span>
               </div>
             </div>

@@ -20,7 +20,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ currentUser, onExpense
   const [concepto, setConcepto] = useState('');
   const [monto, setMonto] = useState('');
   const [categoria, setCategoria] = useState('Otros');
-  const [tipo, setTipo] = useState<'contado' | 'fiado'>('contado');
+  const [tipo, setTipo] = useState<'contado' | 'fiado'>('fiado');
+  const [proveedorTipo, setProveedorTipo] = useState<'negocio' | 'otro'>('negocio');
   const [proveedor, setProveedor] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -31,16 +32,25 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ currentUser, onExpense
       setMessage({ text: 'Por favor, introduce un concepto y un monto válido.', type: 'error' });
       return;
     }
+    if (tipo === 'fiado' && proveedorTipo === 'otro' && !proveedor.trim()) {
+      setMessage({ text: 'Indica el nombre del proveedor o acreedor.', type: 'error' });
+      return;
+    }
 
     setIsSaving(true);
     setMessage(null);
 
     const expenseData = {
       concepto: concepto.trim(),
-      monto: parseFloat(monto),
+      monto: Math.round(parseFloat(monto)),
       categoria,
       tipo,
-      proveedor: tipo === 'fiado' ? proveedor.trim() : null,
+      proveedor:
+        tipo === 'fiado'
+          ? proveedorTipo === 'negocio'
+            ? 'Negocio'
+            : proveedor.trim()
+          : null,
       pagado: tipo === 'contado', // Si es contado, ya está pagado. Si es fiado, inicia como no pagado (false)
       creado_por: currentUser,
       fecha: new Date().toISOString().split('T')[0] // Formato YYYY-MM-DD
@@ -117,7 +127,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ currentUser, onExpense
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label" htmlFor="concepto">Concepto / Producto</label>
+            <label className="form-label" htmlFor="concepto">Producto</label>
             <input
               id="concepto"
               type="text"
@@ -134,12 +144,13 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ currentUser, onExpense
             <input
               id="monto"
               type="number"
-              step="0.01"
-              min="0.01"
+              step="1"
+              min="1"
+              inputMode="numeric"
               className="form-input"
-              placeholder="0.00"
+              placeholder="0"
               value={monto}
-              onChange={(e) => setMonto(e.target.value)}
+              onChange={(e) => setMonto(e.target.value.replace(/[^\d]/g, ''))}
               required
             />
           </div>
@@ -150,33 +161,54 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ currentUser, onExpense
           <div className="tab-group">
             <button
               type="button"
-              className={`tab-btn ${tipo === 'contado' ? 'active' : ''}`}
-              onClick={() => setTipo('contado')}
-            >
-              Al Contado (Pagado)
-            </button>
-            <button
-              type="button"
               className={`tab-btn ${tipo === 'fiado' ? 'active' : ''}`}
               onClick={() => setTipo('fiado')}
             >
               Fiado (Cuentas por Pagar)
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${tipo === 'contado' ? 'active' : ''}`}
+              onClick={() => setTipo('contado')}
+            >
+              Al Contado (Pagado)
             </button>
           </div>
         </div>
 
         {tipo === 'fiado' && (
           <div className="form-group fade-in">
-            <label className="form-label" htmlFor="proveedor">Proveedor / Acreedor</label>
-            <input
-              id="proveedor"
-              type="text"
-              className="form-input"
-              placeholder="Ej. Distribuidora Gómez, Pancho..."
-              value={proveedor}
-              onChange={(e) => setProveedor(e.target.value)}
-              required={tipo === 'fiado'}
-            />
+            <label className="form-label">Proveedor / Acreedor</label>
+            <div className="tab-group">
+              <button
+                type="button"
+                className={`tab-btn ${proveedorTipo === 'negocio' ? 'active' : ''}`}
+                onClick={() => setProveedorTipo('negocio')}
+              >
+                Negocio
+              </button>
+              <button
+                type="button"
+                className={`tab-btn ${proveedorTipo === 'otro' ? 'active' : ''}`}
+                onClick={() => setProveedorTipo('otro')}
+              >
+                Otro
+              </button>
+            </div>
+
+            {proveedorTipo === 'otro' && (
+              <input
+                id="proveedor"
+                type="text"
+                className="form-input fade-in"
+                style={{ marginTop: '10px' }}
+                placeholder="Ej. Distribuidora Gómez, Pancho..."
+                value={proveedor}
+                onChange={(e) => setProveedor(e.target.value)}
+                required
+                autoFocus
+              />
+            )}
           </div>
         )}
 
