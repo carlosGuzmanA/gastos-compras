@@ -33,6 +33,9 @@ function App() {
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushDenied, setPushDenied] = useState(false);
 
+  // Toast in-app cuando llega un gasto nuevo por realtime
+  const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
+
   // Cargar usuario del almacenamiento local
   useEffect(() => {
     const user = localStorage.getItem('negocio_gasto_user');
@@ -137,8 +140,40 @@ function App() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'gastos' },
-        () => {
+        (payload: { eventType: string; new: Gasto }) => {
           fetchExpenses();
+
+          // Solo notificar dentro de la app en INSERTs de otros usuarios
+          if (payload.eventType === 'INSERT') {
+            const g = payload.new;
+            if (g && g.creado_por && g.creado_por !== currentUser) {
+              setToast({
+                title: '💸 Nuevo Gasto Registrado',
+                body: `${g.creado_por} anotó: $${g.monto} en "${g.concepto}" (${g.tipo === 'contado' ? 'Al Contado' : 'Fiado'})`,
+              });
+              try {
+                // Beep corto generado con WebAudio (no necesita asset)
+                const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+                if (Ctx) {
+                  const ctx = new Ctx();
+                  const osc = ctx.createOscillator();
+                  const gain = ctx.createGain();
+                  osc.connect(gain);
+                  gain.connect(ctx.destination);
+                  osc.type = 'sine';
+                  osc.frequency.setValueAtTime(880, ctx.currentTime);
+                  osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.18);
+                  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                  gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+                  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+                  osc.start();
+                  osc.stop(ctx.currentTime + 0.36);
+                }
+              } catch {
+                /* sonido opcional, no romper si el navegador lo bloquea */
+              }
+            }
+          }
         }
       )
       .subscribe();
@@ -146,7 +181,14 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchExpenses, isOnline]);
+  }, [fetchExpenses, isOnline, currentUser]);
+
+  // Auto-ocultar el toast tras 5s
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   // Verificar estado de notificaciones push para mostrar banner o inicializar estado
   useEffect(() => {
@@ -335,6 +377,40 @@ function App() {
                 Configura tu base de datos y notificaciones push gratuitas siguiendo las instrucciones en el archivo 
                 <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', color: '#fff' }}>SUPABASE_SETUP.md</code>.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Toast in-app de nuevo gasto */}
+        {toast && (
+          <div
+            onClick={() => setToast(null)}
+            style={{
+              position: 'fixed',
+              top: '16px',
+              right: '16px',
+              zIndex: 1000,
+              maxWidth: '360px',
+              background: 'rgba(20, 20, 30, 0.95)',
+              border: '1px solid var(--primary)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(10px)',
+              cursor: 'pointer',
+              animation: 'fade-in 0.25s ease-out'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <Bell size={18} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '4px' }}>
+                  {toast.title}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  {toast.body}
+                </div>
+              </div>
             </div>
           </div>
         )}
