@@ -33,8 +33,34 @@ function App() {
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushDenied, setPushDenied] = useState(false);
 
+  // Estado para la instalación PWA
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showIOSInstallBanner, setShowIOSInstallBanner] = useState(false);
+
   // Toast in-app cuando llega un gasto nuevo por realtime
   const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
+
+  // Escuchar beforeinstallprompt para Android/Desktop y detectar iOS
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    
+    if (isIOS && !isStandalone) {
+      setShowIOSInstallBanner(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   // Cargar usuario del almacenamiento local
   useEffect(() => {
@@ -249,6 +275,15 @@ function App() {
     }
   };
 
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to install: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('negocio_gasto_user');
     setCurrentUser(null);
@@ -386,6 +421,66 @@ function App() {
                   {toast.body}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de Instalación para Android / Desktop */}
+        {showInstallBanner && (
+          <div className="notification-banner fade-in" style={{ border: '1.5px solid var(--border-glow)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '1.2rem' }}>✨</span>
+              <span className="notification-banner-text">
+                Instala la App en tu pantalla de inicio para usarla más rápido y recibir notificaciones.
+              </span>
+            </div>
+            <div className="notification-banner-actions">
+              <button
+                type="button"
+                className="btn btn-primary notification-banner-btn"
+                onClick={handleInstallClick}
+              >
+                Instalar
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary notification-banner-btn"
+                onClick={() => setShowInstallBanner(false)}
+              >
+                Ahora no
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de Instalación para iOS */}
+        {showIOSInstallBanner && (
+          <div className="ios-install-banner">
+            <div className="ios-install-content">
+              <div className="ios-install-header">
+                <span className="ios-install-title">📱 Instala la App en tu iPhone</span>
+                <button
+                  type="button"
+                  className="ios-install-close"
+                  onClick={() => setShowIOSInstallBanner(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <p className="ios-install-text">
+                Para poder <strong>recibir notificaciones</strong> y registrar gastos sin internet, debes instalar la aplicación:
+              </p>
+              <ol className="ios-install-steps">
+                <li>
+                  Toca el botón compartir 
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', margin: '0 4px', verticalAlign: 'middle', color: 'var(--primary)' }}>
+                    <rect x="5" y="9" width="14" height="11" rx="2" />
+                    <path d="M12 15V3m0 0L8.5 6.5M12 3l3.5 3.5" />
+                  </svg> 
+                  en Safari (o el menú en Chrome).
+                </li>
+                <li>Desliza hacia abajo y selecciona <strong>"Agregar a la pantalla de inicio"</strong>.</li>
+              </ol>
             </div>
           </div>
         )}
