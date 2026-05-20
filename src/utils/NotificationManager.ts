@@ -35,8 +35,8 @@ export const NotificationManager = {
 
   // Solicitar permiso e inmediatamente suscribir al usuario
   async requestPermissionAndSubscribe(username: string): Promise<PushSubscription | null> {
-    if (!this.isSupported()) {
-      console.warn('Las notificaciones push no están soportadas en este navegador.');
+    if (!username || !username.trim()) {
+      console.warn('No se puede suscribir sin usuario activo.');
       return null;
     }
 

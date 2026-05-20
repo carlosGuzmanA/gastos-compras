@@ -31,6 +31,7 @@ function App() {
   // Estado de Notificaciones Push
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushDenied, setPushDenied] = useState(false);
 
   // Cargar usuario del almacenamiento local
   useEffect(() => {
@@ -153,6 +154,12 @@ function App() {
       const state = NotificationManager.getPermissionState();
       
       // Comprobar si ya existe suscripción activa
+      if (state === 'denied') {
+        setPushDenied(true);
+        setShowNotificationBanner(true);
+        return;
+      }
+
       navigator.serviceWorker.ready.then((registration) => {
         registration.pushManager.getSubscription().then((sub) => {
           if (sub) {
@@ -168,8 +175,12 @@ function App() {
   }, []);
 
   const handleSubscribePush = async () => {
+    if (!currentUser || !currentUser.trim()) {
+      alert('Selecciona tu usuario antes de activar las notificaciones.');
+      return;
+    }
     try {
-      const sub = await NotificationManager.requestPermissionAndSubscribe(currentUser || '');
+      const sub = await NotificationManager.requestPermissionAndSubscribe(currentUser);
       if (sub) {
         setPushSubscribed(true);
         setShowNotificationBanner(false);
@@ -332,23 +343,27 @@ function App() {
         {showNotificationBanner && (
           <div className="notification-banner fade-in">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Bell size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+              <Bell size={18} style={{ color: pushDenied ? 'var(--warning)' : 'var(--primary)', flexShrink: 0 }} />
               <span className="notification-banner-text">
-                ¿Deseas activar las notificaciones push al registrar gastos en el negocio?
+                {pushDenied
+                  ? 'Las notificaciones están bloqueadas. Haz clic en el candado de la URL → Configuración del sitio → Notificaciones → Permitir, y recarga la página.'
+                  : '¿Deseas activar las notificaciones push al registrar gastos en el negocio?'}
               </span>
             </div>
             <div className="notification-banner-actions">
-              <button 
-                className="btn btn-primary notification-banner-btn"
-                onClick={handleSubscribePush}
-              >
-                Activar
-              </button>
-              <button 
+              {!pushDenied && (
+                <button
+                  className="btn btn-primary notification-banner-btn"
+                  onClick={handleSubscribePush}
+                >
+                  Activar
+                </button>
+              )}
+              <button
                 className="btn btn-secondary notification-banner-btn"
                 onClick={() => setShowNotificationBanner(false)}
               >
-                Omitir
+                {pushDenied ? 'Entendido' : 'Omitir'}
               </button>
             </div>
           </div>
