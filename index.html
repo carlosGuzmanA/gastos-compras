@@ -24,10 +24,34 @@
           navigator.serviceWorker.register('/sw.js')
             .then((reg) => {
               console.log('Service Worker registrado con éxito:', reg.scope);
+
+              // Detectar si hay una actualización disponible en segundo plano
+              reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                if (installingWorker) {
+                  installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed') {
+                      if (navigator.serviceWorker.controller) {
+                        console.log('Nueva versión del Service Worker instalada y lista.');
+                      }
+                    }
+                  };
+                }
+              };
             })
             .catch((err) => {
               console.error('Error al registrar el Service Worker:', err);
             });
+
+          // Detectar cuando el Service Worker controlador cambia (nueva versión toma el control)
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              console.log('Nueva versión detectada y activa. Recargando aplicación...');
+              window.location.reload();
+            }
+          });
         });
       }
     </script>

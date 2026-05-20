@@ -1,12 +1,10 @@
-const CACHE_NAME = 'gastos-negocio-cache-v1';
+const CACHE_NAME = 'gastos-negocio-cache-__BUILD_VERSION__';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon.svg',
-  '/src/main.tsx',
-  '/src/App.tsx',
-  '/src/index.css'
+  '/favicon.svg'
 ];
 
 // Instalar el Service Worker y almacenar en caché archivos clave
@@ -45,31 +43,69 @@ self.addEventListener('activate', (event) => {
 });
 
 // Interceptar peticiones y servir desde caché si está offline
+// Interceptar peticiones y servir con las estrategias de caché correspondientes
 self.addEventListener('fetch', (event) => {
-  // Solo interceptar peticiones GET locales (evita interceptar llamadas a Supabase)
+  // Solo interceptar peticiones GET locales (evita interceptar llamadas a Supabase o externas)
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
+  const url = new URL(event.request.url);
+
+  // 1. ESTRATEGIA: Network-First para la navegación / HTML principal
+  // Esto garantiza que siempre carguemos el último index.html (que apunta a los nuevos JS/CSS) si hay red.
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Si falla la red (offline), servimos el index.html desde caché
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  // 2. ESTRATEGIA: Cache-First para archivos compilados en /assets/ (JS/CSS con hashes)
+  // Como tienen hashes únicos de compilación, son inmutables y no cambiarán sin cambiar de nombre.
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // 3. ESTRATEGIA: Stale-While-Revalidate para el resto de archivos estáticos (iconos, manifest, etc.)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Devolvemos el recurso cacheado e intentamos actualizar la caché en segundo plano
-        fetch(event.request).then((networkResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
           if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           }
-        }).catch(() => {/* Silenciar errores de red en segundo plano */});
-        
-        return cachedResponse;
-      }
+          return networkResponse;
+        })
+        .catch(() => {/* Ignorar errores de red offline */});
 
-      return fetch(event.request).catch(() => {
-        // Si no hay red y no está cacheado, devolvemos index.html para soportar SPA routing offline
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
+      return cachedResponse || fetchPromise;
     })
   );
 });
