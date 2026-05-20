@@ -6,9 +6,9 @@ interface UserSelectionProps {
 }
 
 const PRESET_USERS = [
-  { name: 'Carlos', icon: Store, color: '#6366f1' },
-  { name: 'María', icon: Sparkles, color: '#10b981' },
-  { name: 'Negocio', icon: Building2, color: '#f59e0b' }
+  { name: 'Carlos', icon: Store, color: 'var(--success)' },
+  { name: 'María', icon: Sparkles, color: 'var(--primary)' },
+  { name: 'Negocio', icon: Building2, color: 'var(--warning)' }
 ];
 
 export const UserSelection: React.FC<UserSelectionProps> = ({ onSelectUser }) => {

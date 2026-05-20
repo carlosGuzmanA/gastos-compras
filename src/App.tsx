@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { LayoutDashboard, PlusCircle, History, LogOut, Wifi, WifiOff, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, History, LogOut, Wifi, WifiOff, Bell, Settings, Sun, Moon } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './utils/supabaseClient';
 import { NotificationManager } from './utils/NotificationManager';
 import { UserSelection } from './components/UserSelection';
@@ -37,6 +37,22 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showIOSInstallBanner, setShowIOSInstallBanner] = useState(false);
+
+  // Estado de Tema: Claro / Oscuro (Shadcn Zinc style)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('negocio_gasto_theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('negocio_gasto_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   // Toast in-app cuando llega un gasto nuevo por realtime
   const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
@@ -322,6 +338,16 @@ function App() {
               <Bell size={16} fill={pushSubscribed ? 'currentColor' : 'none'} />
             </button>
           )}
+
+          <button
+            type="button"
+            className="topbar-icon-btn"
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
+            aria-label="Alternar tema"
+          >
+            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
 
           <div className="topbar-user" title={currentUser}>
             <div className="topbar-avatar">{currentUser.charAt(0).toUpperCase()}</div>
