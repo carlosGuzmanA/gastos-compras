@@ -114,7 +114,7 @@ body {
 .app-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 16px 16px 100px 16px; /* Space for bottom navigation bar on mobile */
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom)) 16px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -393,9 +393,9 @@ h2, h3, h4 {
   justify-content: center;
 }
 
-.stat-icon.primary { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
-.stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-.stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+.stat-icon.primary { background: var(--primary-glow); color: var(--text-primary); }
+.stat-icon.success { background: var(--success-glow); color: var(--success); }
+.stat-icon.warning { background: var(--warning-glow); color: var(--warning); }
 
 .stat-value {
   font-family: var(--font-heading);
@@ -481,9 +481,11 @@ h2, h3, h4 {
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-actions {
@@ -499,7 +501,7 @@ h2, h3, h4 {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   color: var(--text-secondary);
   cursor: pointer;
@@ -508,8 +510,9 @@ h2, h3, h4 {
   flex-shrink: 0;
 }
 .topbar-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
+  border-color: var(--border-glow);
 }
 .topbar-icon-btn.is-active {
   color: var(--success);
@@ -545,8 +548,8 @@ h2, h3, h4 {
   align-items: center;
   gap: 8px;
   padding: 4px 10px 4px 4px;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.18);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-light);
   border-radius: 999px;
   max-width: 140px;
 }
@@ -555,8 +558,8 @@ h2, h3, h4 {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
-  color: #fff;
+  background: var(--primary);
+  color: var(--primary-fg);
   font-weight: 700;
   font-size: 0.85rem;
   display: flex;
@@ -585,62 +588,61 @@ h2, h3, h4 {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 70px;
-  background: rgba(12, 12, 24, 0.92);
+  height: calc(64px + env(safe-area-inset-bottom));
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-light);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 16px env(safe-area-inset-bottom) 16px;
   z-index: 100;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
-  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: var(--shadow-lg);
 }
 
 .mobile-nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   cursor: pointer;
-  padding: 8px 14px;
-  border-radius: 12px;
+  padding: 6px 8px;
+  border-radius: 10px;
   transition: color 0.2s ease;
   flex: 1;
-  max-width: 90px;
+  max-width: 110px;
+  height: 100%;
 }
 .mobile-nav-item.active {
-  color: var(--primary);
+  color: var(--text-primary);
 }
 
 .mobile-nav-fab {
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
-  color: #fff;
+  background: var(--primary);
+  color: var(--primary-fg);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transform: translateY(-18px);
-  box-shadow: 0 8px 24px var(--primary-glow), 0 4px 8px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transform: translateY(-16px);
+  box-shadow: var(--shadow-lg), 0 0 0 4px var(--bg-main);
+  transition: transform 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
 }
-.mobile-nav-fab:hover { box-shadow: 0 10px 30px var(--primary-glow), var(--shadow-glow); }
+.mobile-nav-fab:hover { background: var(--primary-hover); }
 .mobile-nav-fab:active { transform: translateY(-14px) scale(0.96); }
-.mobile-nav-fab.active {
-  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-}
 
 @media (min-width: 1024px) {
   .mobile-bottom-nav { display: none; }
@@ -672,7 +674,7 @@ h2, h3, h4 {
   left: 0;
   right: 0;
   height: 72px;
-  background: rgba(15, 15, 28, 0.85);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-light);
@@ -681,7 +683,7 @@ h2, h3, h4 {
   align-items: center;
   padding: 0 12px;
   z-index: 100;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-md);
 }
 
 .nav-item {
@@ -703,12 +705,12 @@ h2, h3, h4 {
 
 .nav-item:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-card-hover);
 }
 
 .nav-item.active {
-  color: var(--primary);
-  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
 }
 
 @media (min-width: 1024px) {
@@ -833,7 +835,7 @@ h2, h3, h4 {
 }
 
 .expense-item:hover {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--bg-card-hover);
 }
 
 .expense-info {
@@ -932,7 +934,7 @@ h2, h3, h4 {
 }
 
 .category-option {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   padding: 12px 6px;
@@ -948,14 +950,15 @@ h2, h3, h4 {
 }
 
 .category-option:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
+  border-color: var(--border-glow);
 }
 
 .category-option.selected {
   border-color: var(--primary);
-  background: var(--primary-glow);
-  color: #fff;
+  background: var(--primary);
+  color: var(--primary-fg);
 }
 
 /* Filters Section styling */
@@ -995,15 +998,16 @@ h2, h3, h4 {
 
 /* Notification prompt bar */
 .notification-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
-  border: 1px solid var(--border-glow);
-  border-radius: var(--radius-sm);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   padding: 14px 18px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .notification-banner-text {
@@ -1052,7 +1056,7 @@ h2, h3, h4 {
 .expense-swipe-container {
   position: relative;
   overflow: hidden;
-  background: rgba(22, 22, 38, 0.4);
+  background: var(--bg-card);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-light);
   margin-bottom: 10px;
@@ -1085,16 +1089,16 @@ h2, h3, h4 {
 /* iOS Custom Install Banner */
 .ios-install-banner {
   position: fixed;
-  bottom: 84px; /* Space for the bottom navigation bar on mobile */
+  bottom: calc(90px + env(safe-area-inset-bottom));
   left: 16px;
   right: 16px;
-  background: rgba(15, 15, 28, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid var(--border-glow);
+  border: 1px solid var(--border-glow);
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  box-shadow: var(--shadow-lg);
   z-index: 999;
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -1126,9 +1130,7 @@ h2, h3, h4 {
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 1rem;
-  background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .ios-install-close {

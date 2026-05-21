@@ -397,10 +397,10 @@ function App() {
         {!isSupabaseConfigured && (
           <div 
             className="glass-panel" 
-            style={{ 
-              marginBottom: '20px', 
-              background: 'rgba(245, 158, 11, 0.08)', 
-              borderColor: 'rgba(245, 158, 11, 0.2)',
+            style={{
+              marginBottom: '16px',
+              background: 'var(--warning-glow)',
+              borderColor: 'var(--border-glow)',
               display: 'flex',
               alignItems: 'center',
               gap: '12px'
@@ -411,7 +411,7 @@ function App() {
               <p style={{ fontWeight: 600, color: 'var(--warning)', marginBottom: '2px' }}>Modo de Demostración Activo</p>
               <p style={{ color: 'var(--text-secondary)' }}>
                 Configura tu base de datos y notificaciones push gratuitas siguiendo las instrucciones en el archivo 
-                <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', color: '#fff' }}>SUPABASE_SETUP.md</code>.
+                <code style={{ background: 'var(--bg-card-hover)', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', color: 'var(--text-primary)', border: '1px solid var(--border-light)' }}>SUPABASE_SETUP.md</code>.
               </p>
             </div>
           </div>
@@ -423,18 +423,20 @@ function App() {
             onClick={() => setToast(null)}
             style={{
               position: 'fixed',
-              top: '16px',
+              top: 'calc(16px + env(safe-area-inset-top))',
               right: '16px',
-              zIndex: 1000,
+              left: '16px',
               maxWidth: '360px',
-              background: 'rgba(20, 20, 30, 0.95)',
-              border: '1px solid var(--primary)',
-              borderRadius: '12px',
+              marginLeft: 'auto',
+              zIndex: 1000,
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-glow)',
+              borderRadius: 'var(--radius-md)',
               padding: '14px 16px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(10px)',
+              boxShadow: 'var(--shadow-lg)',
               cursor: 'pointer',
-              animation: 'fade-in 0.25s ease-out'
+              animation: 'fade-in 0.25s ease-out',
+              color: 'var(--text-primary)'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>

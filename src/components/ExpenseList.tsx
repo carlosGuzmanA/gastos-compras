@@ -138,7 +138,7 @@ const ExpenseItemComponent: React.FC<ExpenseItemComponentProps> = ({
             {expense.is_offline && (
               <span
                 className="badge"
-                style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)', border: '1px dashed rgba(255,255,255,0.15)' }}
+                style={{ background: 'var(--bg-card-hover)', color: 'var(--text-secondary)', border: '1px dashed var(--border-glow)' }}
                 title="Guardado localmente sin sincronizar"
               >
                 Local
@@ -435,7 +435,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isLoading, o
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(5, 5, 10, 0.8)',
+          background: 'rgba(0, 0, 0, 0.5)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           justifyContent: 'center',
