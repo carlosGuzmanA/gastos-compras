@@ -31,3 +31,7 @@ dist-ssr
 .env.production.local
 .env.*
 
+
+# Supabase CLI local state (contiene project refs)
+supabase/.temp/
+supabase/.branches/

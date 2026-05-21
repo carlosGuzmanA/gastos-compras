@@ -11,11 +11,13 @@ Sigue estos 4 sencillos pasos para aplicarlo desde cero:
 1. Entra a tu cuenta en **Vercel** y abre tu proyecto.
 2. Ve a la pestaña **Settings** -> **Environment Variables**.
 3. Busca la variable `VITE_VAPID_PUBLIC_KEY` y edítala (o créala si no existe).
-4. Pega esta **Clave Pública** exacta (sin espacios ni comillas al inicio o final):
+4. Pega tu **Clave Pública VAPID** (la que generaste localmente con `npx web-push generate-vapid-keys`):
    ```text
-   BEr9hwfE9A11LS3abasirh060Xe3C4g5miUl56_fW0l6HpQ3hio10nUQRoJ7gM-Yn-KJbQ6KfUvo1ccDYTt6cZY
+   <TU_VAPID_PUBLIC_KEY>
    ```
 5. Haz clic en **Save** (Guardar).
+
+> ⚠️ **Nunca** pegues claves VAPID reales (especialmente la privada) en archivos versionados. Mantenlas solo en `.env` local y en los secrets de Vercel / Supabase.
 
 ---
 
@@ -33,8 +35,13 @@ Dado que las variables de entorno de Vite se integran en la web al compilar, es 
 Abre tu terminal en la computadora en la carpeta de tu proyecto y ejecuta este comando para guardar las nuevas claves en los secretos de tus Edge Functions:
 
 ```bash
-supabase secrets set VAPID_PUBLIC_KEY="BEr9hwfE9A11LS3abasirh060Xe3C4g5miUl56_fW0l6HpQ3hio10nUQRoJ7gM-Yn-KJbQ6KfUvo1ccDYTt6cZY" VAPID_PRIVATE_KEY="4YpXqsNTKOCYSVh2UMoQNgSFAcf5jxOGxcyG260g6nc"
+supabase secrets set \
+  VAPID_PUBLIC_KEY="<TU_VAPID_PUBLIC_KEY>" \
+  VAPID_PRIVATE_KEY="<TU_VAPID_PRIVATE_KEY>" \
+  VAPID_EMAIL="mailto:<tu-correo>"
 ```
+
+> Las claves reales no se incluyen en este repositorio. Genéralas tú mismo y guárdalas solo en tu `.env` local y en los secrets de tu proveedor.
 
 ---
 
